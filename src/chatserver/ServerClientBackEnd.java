@@ -35,10 +35,24 @@ public class ServerClientBackEnd implements Runnable {
             
             while (true) {
                 ChatMessage cm = (ChatMessage)input.readObject();
-                ChatServer.broadcastMessage(cm);
+                if(cm.isNameUpdate()) {
+                    ChatServer.addUserToArray(cm.getUserName());
+                }
+                else if (cm.isIsPrivate()) {
+                    System.out.println("Private-viesti");
+                    ChatServer.sendPrivateMessage(this, cm);
+                }
+                else {
+                    ChatServer.broadcastMessage(cm);
+                }
+                
             }
         } catch (IOException | ClassNotFoundException ex) {
+            System.out.println("5");
             ex.printStackTrace();
+        }
+        finally {
+            ChatServer.removeClient(this);
         }
     }
     
@@ -48,6 +62,7 @@ public class ServerClientBackEnd implements Runnable {
             output.writeObject(cm);
             output.flush();
         } catch (IOException ex) {
+            System.out.println("6");
             ex.printStackTrace();
         }
     }
