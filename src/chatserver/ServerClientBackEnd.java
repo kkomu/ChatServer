@@ -21,9 +21,14 @@ public class ServerClientBackEnd implements Runnable {
     private Socket socket;
     private ObjectInputStream input;
     private ObjectOutputStream output;
+    private String userName = "";
     
     public ServerClientBackEnd(Socket s) {
         socket = s;
+    }
+
+    public String getUserName() {
+        return userName;
     }
     
     @Override
@@ -36,11 +41,8 @@ public class ServerClientBackEnd implements Runnable {
             while (true) {
                 ChatMessage cm = (ChatMessage)input.readObject();
                 if(cm.isNameUpdate()) {
-                    ChatServer.addUserToArray(cm.getUserName());
-                }
-                else if (cm.isIsPrivate()) {
-                    System.out.println("Private-viesti");
-                    ChatServer.sendPrivateMessage(this, cm);
+                    userName = cm.getUserName();
+                    ChatServer.updateUserList();
                 }
                 else {
                     ChatServer.broadcastMessage(cm);

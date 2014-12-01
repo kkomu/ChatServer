@@ -18,7 +18,7 @@ import message.ChatMessage;
  */
 public class ChatServer {
     static ArrayList<ServerClientBackEnd> clients = new ArrayList<>();
-    static ArrayList<String> users = new ArrayList<>();
+    //static ArrayList<String> users = new ArrayList<>();
     /**
      * @param args the command line arguments
      */
@@ -44,47 +44,41 @@ public class ChatServer {
     }
     
     public static void broadcastMessage(ChatMessage cm) {
-        for(ServerClientBackEnd temp: clients) {
-            temp.sendMessage(cm);
-        }
-    }
-    
-    public static void sendPrivateMessage(ServerClientBackEnd be, ChatMessage cm) {
-        for(String u: users ) {
-            if(cm.getPrivateName().matches(u)) {
-                System.out.printf("Löytyi käyttäjä: %s\n",u);
-                clients.get(users.indexOf(u)).sendMessage(cm);
-                be.sendMessage(cm);
-                break;
-                
+        if(cm.isPrivateMessage()) {
+            for(ServerClientBackEnd temp: clients) {
+                if(temp.getUserName().equals(cm.getPrivateName())) {
+                    System.out.printf("Löytyi käyttäjä: %s\n",temp.getUserName());
+                    temp.sendMessage(cm);
+                }
+                else if(temp.getUserName().equals(cm.getUserName())) {
+                    temp.sendMessage(cm);
+                }
             }
         }
+        else {
+            for(ServerClientBackEnd temp: clients) {
+                temp.sendMessage(cm);
+            }
+        }
+        
     }
-    
-    public static void addUserToArray(String user) {
-        users.add(user);
-        System.out.printf("lisättiin käyttäjä %s\n",user);
-        System.out.printf("users: %d\n",users.size());
-        System.out.printf("clients: %d\n",clients.size());
-        updateUserList();
-    }
-    
+     
     public static void updateUserList() {
         ChatMessage cm = new ChatMessage();
         cm.setUserListUpdate(true);
         StringBuilder userList = new StringBuilder();
-        for(String a: users) {
-            userList.append(a+",");
+        for(ServerClientBackEnd a: clients) {
+            if(!a.getUserName().isEmpty()) {
+                userList.append(a.getUserName()+",");
+            }
         }
         cm.setChatMessage(userList.toString());
         broadcastMessage(cm);
     }
     
     public static void removeClient(ServerClientBackEnd s) {
-        System.out.printf("poistettiin käyttäjä %s\n",users.get(clients.indexOf(s)));
-        users.remove(clients.indexOf(s));
+        System.out.printf("poistettiin käyttäjä %s\n",s.getUserName());
         clients.remove(s);
-        System.out.printf("users: %d\n",users.size());
         System.out.printf("clients: %d\n",clients.size());
         updateUserList();
     }
